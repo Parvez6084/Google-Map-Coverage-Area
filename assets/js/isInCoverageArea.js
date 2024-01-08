@@ -17,14 +17,14 @@ export default async function isInCoverageArea(map, lat, lng) {
 
             if (isInside) {
                 isInCoverage = true;
-                polyArea.setOptions({
-                    map: map,
-                    strokeColor: "green",
-                    strokeWeight: 2,
-                    strokeOpacity: 1,
-                    fillColor: "green",
-                    fillOpacity: 0.3,
-                });
+                // polyArea.setOptions({
+                //     map: map,
+                //     strokeColor: "green",
+                //     strokeWeight: 2,
+                //     strokeOpacity: 1,
+                //     fillColor: "green",
+                //     fillOpacity: 0.6,
+                // });
                 console.log('yes>>>>>>>>>>');
                 break;
             } else {

@@ -9,36 +9,24 @@ let map;
 let markers = [];
 const form = document.querySelector("#locationInfo");
 const locationButton = document.getElementById("check-location-btn");
+const toast = document.querySelector(".toast");
+const progressBar = document.querySelector(".progress");
+
 
 
 form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const formData = new FormData(form);
     const data = Object.fromEntries(formData);
-    console.log(data);
+    setMarker({ lat: +data.lat, lng: +data.lon });
+
     const isInCoverage = await isInCoverageArea(map, data.lat, data.lon);
     if (isInCoverage) {
-        document.querySelector('.success').style.display = 'block';
-        setTimeout(() => {
-            document.querySelector('.success').style.display = 'none';
-        }, 5000);
+        showMessage("Yahoo!!", "Link3 provides coverage in this area", "5px solid green");
     } else {
-        document.querySelector('.error').style.display = 'block';
-        setTimeout(() => {
-            document.querySelector('.error').style.display = 'none';
-        }, 5000);
+        showMessage("Oops!!", "Sorry, we do not have coverage in this area", "5px solid red");
     }
 });
-
-
-document.querySelectorAll('.closebtn').forEach(function (button) {
-    button.addEventListener("click", function () {
-        console.log('clicked');
-        document.querySelector('.error').style.display = 'none';
-        document.querySelector('.success').style.display = 'none';
-    });
-});
-
 
 locationButton.addEventListener("click", () => {
     if (navigator.geolocation) {
@@ -46,7 +34,6 @@ locationButton.addEventListener("click", () => {
             document.getElementById("lat").value = position.coords.latitude;
             document.getElementById("lon").value = position.coords.longitude;
             setMarker({ lat: position.coords.latitude, lng: position.coords.longitude });
-            // map.setCenter({ lat: position.coords.latitude, lng: position.coords.longitude });
         });
 
     } else {
@@ -54,10 +41,29 @@ locationButton.addEventListener("click", () => {
     }
 });
 
+document.querySelector(".close").addEventListener("click", function () {
+    toast.classList.remove("active");
+    progressBar.classList.remove("active");
+});
+
 document.getElementById('clear-button').addEventListener('click', function () {
     var inputs = document.getElementsByTagName('input');
     for (var i = 0; i < inputs.length; i++) {
         inputs[i].value = "";
+    }
+    setMarker(null);
+});
+
+document.getElementById("set-pin-on-map").addEventListener('click', function (event) {
+    if (this.checked) {
+        map.addListener("click", (event) => {
+            document.getElementById("lat").value = event.latLng.lat();
+            document.getElementById("lon").value = event.latLng.lng();
+            setMarker(event.latLng);
+        });
+    }
+    else {
+        google.maps.event.clearListeners(map, 'click');
     }
 });
 
@@ -85,14 +91,7 @@ async function initMap() {
         restriction: { latLngBounds: bdLatLngBounds },
     });
 
-    map.addListener("click", (event) => {
-        document.getElementById("lat").value = event.latLng.lat();
-        document.getElementById("lon").value = event.latLng.lng();
-        setMarker(event.latLng);
-    });
-
     await drawPolygon(map);
-
 
     map.addListener("bounds_changed", () => { searchBox.setBounds(map.getBounds()); });
     searchBox.addListener("places_changed", () => {
@@ -113,7 +112,18 @@ async function initMap() {
         map.fitBounds(bounds);
     });
 
+}
 
+function showMessage(header, body, color) {
+    document.getElementById("toast-head").innerHTML = header;
+    document.getElementById("toast-body").innerHTML = body;
+    toast.style.borderBottom = color;
+    toast.classList.add("active");
+    progressBar.classList.add("active");
+    setTimeout(() => {
+        progressBar.classList.remove("active");
+        toast.classList.remove("active");
+    }, 5000);
 }
 
 function setMarker(position) {
@@ -127,7 +137,7 @@ function setMarker(position) {
     // Create a new marker and add it to the map
     const marker = new google.maps.Marker({ position, map });
     markers.push(marker);
-    map.setZoom(12);
+    map.setZoom(18);
     map.setCenter(position);
 
 
