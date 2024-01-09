@@ -27,11 +27,6 @@ export async function drawPolygon(map) {
 
             const coordinates = geometry.coordinates[0]; // Get polygon coordinates
             let filterCoordinates = coordinates.map(coord => ({ lat: coord[1], lng: coord[0] }));
-
-            //  const centroid = getCentroid(coordinates); // Calculate centroid
-            //  const distance = google.maps.geometry.spherical.computeDistanceBetween(currentLocation, centroid);
-            //var customLocation = new google.maps.LatLng(23.78163649585983, 90.4158008952727);
-
             const polyArea = new google.maps.Polygon({ paths: filterCoordinates, map: map, clickable: false });
             polyArea.setOptions(styleOptions);
         }

@@ -3,6 +3,7 @@ const { Map } = await google.maps.importLibrary("maps");
 const { LatLng } = await google.maps.importLibrary("core");
 const { poly } = await google.maps.importLibrary("geometry");
 import isInCoverageArea from "./isInCoverageArea.js";
+import distanceCalculation from "./distanceCalculation.js";
 import { drawPolygon } from "./geoLocation.js";
 
 let map;
@@ -18,13 +19,17 @@ form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const formData = new FormData(form);
     const data = Object.fromEntries(formData);
-    setMarker({ lat: +data.lat, lng: +data.lon });
-
+    var marker = setMarker({ lat: +data.lat, lng: +data.lon });
     const isInCoverage = await isInCoverageArea(map, data.lat, data.lon);
+
     if (isInCoverage) {
         showMessage("Yahoo!!", "Link3 provides coverage in this area", "5px solid green");
     } else {
         showMessage("Oops!!", "Sorry, we do not have coverage in this area", "5px solid red");
+
+        let getDistence = await distanceCalculation(+data.lat, +data.lon);
+        infoWindowContent(getDistence.distance, marker);
+        drawPolyline(getDistence, +data.lat, +data.lon);
     }
 });
 
@@ -131,7 +136,6 @@ function setMarker(position) {
     if (markers.length > 0) {
         markers.forEach((marker) => { marker.setMap(null); });
         markers = [];
-        console.log('Checking>>>>>>', markers);
     }
 
     // Create a new marker and add it to the map
@@ -139,7 +143,7 @@ function setMarker(position) {
     markers.push(marker);
     map.setZoom(18);
     map.setCenter(position);
-
+    return marker;
 
 }
 
@@ -152,5 +156,37 @@ function handleLocationError(browserHasGeolocation, infoWindow, pos) {
     );
     infoWindow.open(map);
 }
+
+function drawPolyline(distenceModel, lat, lng) {
+
+    const coordinates = [{ lat: lat, lng: lng }, { lat: +distenceModel.lat, lng: +distenceModel.lng }];
+    const polyPath = new google.maps.Polyline({ geodesic: true, strokeColor: "#FF0000", strokeOpacity: 1.0, strokeWeight: 2 });
+    polyPath.setPath(coordinates);
+    polyPath.setMap(map);
+
+}
+
+function infoWindowContent(distance, marker) {
+    let convartDistance = null;
+
+    if (distance > 1000) {
+        convartDistance = (distance / 1000).toFixed(1) + " km";
+    } else {
+        convartDistance = Math.round(distance) + " m";
+    }
+
+    const contentString =
+        '<div id="content">' +
+        '<div id="siteNotice">' + "</div>" +
+        `<p id="firstHeading" class="firstHeading">${convartDistance}</p>` +
+        '<div id="bodyContent">' +
+        "<p>away from coverage area</p>" +
+        "</div>" +
+        "</div>";
+
+    const infowindow = new google.maps.InfoWindow({ content: contentString, ariaLabel: "Distence" });
+    infowindow.open({ anchor: marker, map });
+}
+
 
 window.initMap = initMap();
