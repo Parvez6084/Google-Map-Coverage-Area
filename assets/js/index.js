@@ -12,7 +12,10 @@ const form = document.querySelector("#locationInfo");
 const locationButton = document.getElementById("check-location-btn");
 const toast = document.querySelector(".toast");
 const progressBar = document.querySelector(".progress");
-
+const polyPath = new google.maps.Polyline({
+    geodesic: true, strokeColor: "#FF0000",
+    strokeOpacity: 1.0, strokeWeight: 2
+});
 
 
 form.addEventListener("submit", async (e) => {
@@ -158,12 +161,9 @@ function handleLocationError(browserHasGeolocation, infoWindow, pos) {
 }
 
 function drawPolyline(distenceModel, lat, lng) {
-
     const coordinates = [{ lat: lat, lng: lng }, { lat: +distenceModel.lat, lng: +distenceModel.lng }];
-    const polyPath = new google.maps.Polyline({ geodesic: true, strokeColor: "#FF0000", strokeOpacity: 1.0, strokeWeight: 2 });
     polyPath.setPath(coordinates);
     polyPath.setMap(map);
-
 }
 
 function infoWindowContent(distance, marker) {
