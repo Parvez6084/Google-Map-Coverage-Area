@@ -1,21 +1,23 @@
 
 const { Map } = await google.maps.importLibrary("maps");
 const { LatLng } = await google.maps.importLibrary("core");
-const { poly } = await google.maps.importLibrary("geometry");
 import isInCoverageArea from "./isInCoverageArea.js";
-import distanceCalculation from "./distanceCalculation.js";
+import { polyAreaCalculation } from "./distanceCalculation.js";
+import { splitterCalculation } from "./distanceCalculation.js";
 import { drawPolygon } from "./geoLocation.js";
+import message from "./setToast.js";
+import drawPolyline from "./drawPolyline.js";
+import splitterOnMap from "./setSplitter.js";
+import markerContent from "./markerContent.js";
+
 
 let map;
 let markers = [];
+let checkSplitterOnMap = false;
 const form = document.querySelector("#locationInfo");
 const locationButton = document.getElementById("check-location-btn");
-const toast = document.querySelector(".toast");
-const progressBar = document.querySelector(".progress");
-const polyPath = new google.maps.Polyline({
-    geodesic: true, strokeColor: "#FF0000",
-    strokeOpacity: 1.0, strokeWeight: 2
-});
+
+
 
 
 form.addEventListener("submit", async (e) => {
@@ -23,17 +25,25 @@ form.addEventListener("submit", async (e) => {
     const formData = new FormData(form);
     const data = Object.fromEntries(formData);
     var marker = setMarker({ lat: +data.lat, lng: +data.lon });
-    const isInCoverage = await isInCoverageArea(map, data.lat, data.lon);
 
-    if (isInCoverage) {
-        showMessage("Yahoo!!", "Link3 provides coverage in this area", "5px solid green");
+    if (checkSplitterOnMap) {
+
+        let calculation = await splitterCalculation(+data.lat, +data.lon);
+        markerContent(map, calculation.distance, marker);
+        drawPolyline(map, [+data.lat, +data.lon], [calculation.splitter.latlng[0], calculation.splitter.latlng[1]]);
+        message(calculation.distance < calculation.splitter.range);
+
     } else {
-        showMessage("Oops!!", "Sorry, we do not have coverage in this area", "5px solid red");
 
-        let getDistence = await distanceCalculation(+data.lat, +data.lon);
-        infoWindowContent(getDistence.distance, marker);
-        drawPolyline(getDistence, +data.lat, +data.lon);
+        const isInCoverage = await isInCoverageArea(data.lat, data.lon);
+        message(isInCoverage);
+        if (!isInCoverage) {
+            let calculation = await polyAreaCalculation(+data.lat, +data.lon);
+            markerContent(map, calculation.distance, marker);
+            drawPolyline(map, [+data.lat, +data.lon], [calculation.lat, calculation.lng]);
+        }
     }
+
 });
 
 locationButton.addEventListener("click", () => {
@@ -44,14 +54,7 @@ locationButton.addEventListener("click", () => {
             setMarker({ lat: position.coords.latitude, lng: position.coords.longitude });
         });
 
-    } else {
-        handleLocationError(false, map.getCenter());
     }
-});
-
-document.querySelector(".close").addEventListener("click", function () {
-    toast.classList.remove("active");
-    progressBar.classList.remove("active");
 });
 
 document.getElementById('clear-button').addEventListener('click', function () {
@@ -73,6 +76,10 @@ document.getElementById("set-pin-on-map").addEventListener('click', function (ev
     else {
         google.maps.event.clearListeners(map, 'click');
     }
+});
+
+document.getElementById("check-splitter-on-map").addEventListener('click', function (event) {
+    checkSplitterOnMap = this.checked;
 });
 
 async function initMap() {
@@ -100,6 +107,7 @@ async function initMap() {
     });
 
     await drawPolygon(map);
+    await splitterOnMap(map);
 
     map.addListener("bounds_changed", () => { searchBox.setBounds(map.getBounds()); });
     searchBox.addListener("places_changed", () => {
@@ -122,18 +130,6 @@ async function initMap() {
 
 }
 
-function showMessage(header, body, color) {
-    document.getElementById("toast-head").innerHTML = header;
-    document.getElementById("toast-body").innerHTML = body;
-    toast.style.borderBottom = color;
-    toast.classList.add("active");
-    progressBar.classList.add("active");
-    setTimeout(() => {
-        progressBar.classList.remove("active");
-        toast.classList.remove("active");
-    }, 5000);
-}
-
 function setMarker(position) {
     // Clear all existing markers
     if (markers.length > 0) {
@@ -150,43 +146,6 @@ function setMarker(position) {
 
 }
 
-function handleLocationError(browserHasGeolocation, infoWindow, pos) {
-    infoWindow.setPosition(pos);
-    infoWindow.setContent(
-        browserHasGeolocation
-            ? "Error: The Geolocation service failed."
-            : "Error: Your browser doesn't support geolocation.",
-    );
-    infoWindow.open(map);
-}
-
-function drawPolyline(distenceModel, lat, lng) {
-    const coordinates = [{ lat: lat, lng: lng }, { lat: +distenceModel.lat, lng: +distenceModel.lng }];
-    polyPath.setPath(coordinates);
-    polyPath.setMap(map);
-}
-
-function infoWindowContent(distance, marker) {
-    let convartDistance = null;
-
-    if (distance > 1000) {
-        convartDistance = (distance / 1000).toFixed(1) + " km";
-    } else {
-        convartDistance = Math.round(distance) + " m";
-    }
-
-    const contentString =
-        '<div id="content">' +
-        '<div id="siteNotice">' + "</div>" +
-        `<p id="firstHeading" class="firstHeading">${convartDistance}</p>` +
-        '<div id="bodyContent">' +
-        "<p>away from coverage area</p>" +
-        "</div>" +
-        "</div>";
-
-    const infowindow = new google.maps.InfoWindow({ content: contentString, ariaLabel: "Distence" });
-    infowindow.open({ anchor: marker, map });
-}
 
 
 window.initMap = initMap();

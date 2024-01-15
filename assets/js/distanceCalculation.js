@@ -1,6 +1,9 @@
 import { geoLocation } from "./geoLocation.js";
+import dummySplitterData from "./dummySplitter.js";
 
-export default async function distanceCalculation(lat, lng) {
+
+
+export async function polyAreaCalculation(lat, lng) {
 
     const geoJson = await geoLocation();
     let currentLocation = new google.maps.LatLng(+lat, +lng);
@@ -24,6 +27,26 @@ export default async function distanceCalculation(lat, lng) {
             }
         }
     }
+
+    return shortestDistance;
+}
+
+export async function splitterCalculation(lat, lng) {
+    let currentLocation = new google.maps.LatLng(+lat, +lng);
+    let shortestDistance = { splitter: null, distance: 99999 }
+
+    dummySplitterData.forEach((splitter) => {
+        const distance = google.maps.geometry.spherical.computeDistanceBetween(
+            currentLocation,
+            new google.maps.LatLng(splitter.latlng[0], splitter.latlng[1])
+        );
+
+        if (distance < shortestDistance.distance) {
+            shortestDistance.splitter = splitter;
+            shortestDistance.distance = distance;
+        }
+
+    });
 
     return shortestDistance;
 }

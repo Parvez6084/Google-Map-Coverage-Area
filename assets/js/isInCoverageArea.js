@@ -1,6 +1,6 @@
 import { geoLocation } from "./geoLocation.js";
 
-export default async function isInCoverageArea(map, lat, lng) {
+export default async function isInCoverageArea(lat, lng) {
 
     let isInCoverage = false;
     const geoJson = await geoLocation();
