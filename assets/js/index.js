@@ -2,8 +2,7 @@
 const { Map } = await google.maps.importLibrary("maps");
 const { LatLng } = await google.maps.importLibrary("core");
 import isInCoverageArea from "./isInCoverageArea.js";
-import { polyAreaCalculation } from "./distanceCalculation.js";
-import { splitterCalculation } from "./distanceCalculation.js";
+import { polyAreaCalculation, splitterCalculation } from "./distanceCalculation.js";
 import { drawPolygon } from "./geoLocation.js";
 import message from "./setToast.js";
 import drawPolyline from "./drawPolyline.js";
