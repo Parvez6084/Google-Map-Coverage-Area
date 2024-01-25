@@ -33,7 +33,7 @@ export async function polyAreaCalculation(lat, lng) {
 
 export async function splitterCalculation(lat, lng) {
     let currentLocation = new google.maps.LatLng(+lat, +lng);
-    let shortestDistance = { splitter: null, distance: 99999 }
+    let shortestDistance = { name: "", splitter: null, distance: 99999 }
 
     dummySplitterData.forEach((splitter) => {
         const distance = google.maps.geometry.spherical.computeDistanceBetween(
@@ -44,6 +44,7 @@ export async function splitterCalculation(lat, lng) {
         if (distance < shortestDistance.distance) {
             shortestDistance.splitter = splitter;
             shortestDistance.distance = distance;
+            shortestDistance.name = splitter.name;
         }
 
     });

@@ -8,7 +8,12 @@ export default async function splitterOnMap(map) {
     dummySplitterData.forEach((splitter) => {
         const icon = document.createElement("div");
         icon.innerHTML = '<i class="fa-solid fa-wifi"></i>';
-        const faPin = new PinElement({ glyph: icon, glyphColor: "#00000", background: "#FFD514", borderColor: "#ff8300" });
+        const faPin = new PinElement({
+            glyph: icon,
+            glyphColor: "#00000",
+            background: getRandomColor(),
+            borderColor: "blue"
+        });
 
         const splitterMarker = new AdvancedMarkerElement({
             map,
@@ -34,5 +39,14 @@ export default async function splitterOnMap(map) {
             infowindow.open(map, splitterMarker);
         });
     });
+
+    function getRandomColor() {
+        let letters = '0123456789ABCDEF';
+        let color = '#';
+        for (let i = 0; i < 6; i++) {
+            color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
+    }
 
 }

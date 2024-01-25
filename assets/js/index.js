@@ -28,19 +28,21 @@ form.addEventListener("submit", async (e) => {
     if (checkSplitterOnMap) {
 
         let calculation = await splitterCalculation(+data.lat, +data.lon);
-        markerContent(map, calculation.distance, marker);
+        let isInCoverageSpliter = calculation.distance < calculation.splitter.range;
+
+        markerContent(map, calculation, isInCoverageSpliter, marker);
         drawPolyline(map, [+data.lat, +data.lon], [calculation.splitter.latlng[0], calculation.splitter.latlng[1]]);
-        message(calculation.distance < calculation.splitter.range);
+        message(isInCoverageSpliter);
 
     } else {
 
-        const isInCoverage = await isInCoverageArea(data.lat, data.lon);
-        message(isInCoverage);
-        if (!isInCoverage) {
-            let calculation = await polyAreaCalculation(+data.lat, +data.lon);
-            markerContent(map, calculation.distance, marker);
-            drawPolyline(map, [+data.lat, +data.lon], [calculation.lat, calculation.lng]);
-        }
+        // const isInCoverage = await isInCoverageArea(data.lat, data.lon);
+        // message(isInCoverage);
+        // if (!isInCoverage) {
+        //     let calculation = await polyAreaCalculation(+data.lat, +data.lon);
+        //     markerContent(map, calculation.distance, marker);
+        //     drawPolyline(map, [+data.lat, +data.lon], [calculation.lat, calculation.lng]);
+        // }
     }
 
 });
@@ -105,7 +107,7 @@ async function initMap() {
         restriction: { latLngBounds: bdLatLngBounds },
     });
 
-    await drawPolygon(map);
+    // await drawPolygon(map);
     await splitterOnMap(map);
 
     map.addListener("bounds_changed", () => { searchBox.setBounds(map.getBounds()); });
