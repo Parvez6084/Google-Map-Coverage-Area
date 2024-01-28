@@ -31,7 +31,7 @@ form.addEventListener("submit", async (e) => {
         let isInCoverageSpliter = calculation.distance < calculation.splitter.range;
 
         markerContent(map, calculation, isInCoverageSpliter, marker);
-        drawPolyline(map, [+data.lat, +data.lon], [calculation.splitter.latlng[0], calculation.splitter.latlng[1]]);
+        drawPolyline(map, [+data.lat, +data.lon], [calculation.splitter.latlng[0], calculation.splitter.latlng[1]], isInCoverageSpliter);
         message(isInCoverageSpliter);
 
     } else {
